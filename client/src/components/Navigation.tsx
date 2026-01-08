@@ -16,6 +16,7 @@ export default function Navigation() {
     { label: 'Blog', href: '/blog' },
     { label: 'About', href: '/about' },
     { label: 'Contact', href: '/contact' },
+    { label: 'Cart', href: '/cart' },
   ];
 
   return (

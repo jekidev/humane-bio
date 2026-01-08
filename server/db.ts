@@ -1,6 +1,6 @@
-import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, InsertProduct, users, products, orders, orderItems, chatHistory, adminSettings } from "../drizzle/schema";
+import { eq, desc, and } from 'drizzle-orm';
+import { InsertUser, InsertProduct, users, products, orders, orderItems, chatHistory, adminSettings, cart } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -221,4 +221,124 @@ export async function getAllChatHistory(limit: number = 100) {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(chatHistory).orderBy(desc(chatHistory.createdAt)).limit(limit);
+}
+
+// Cart functions
+export async function getCartItems(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(cart).where(eq(cart.userId, userId));
+}
+
+export async function addToCart(userId: number, productId: number, quantity: number) {
+  const db = await getDb();
+  if (!db) return false;
+  
+  try {
+    const existing = await db.select().from(cart).where(
+      and(eq(cart.userId, userId), eq(cart.productId, productId))
+    ).limit(1);
+    
+    if (existing.length > 0) {
+      await db.update(cart).set({
+        quantity: existing[0].quantity + quantity,
+        updatedAt: new Date(),
+      }).where(eq(cart.id, existing[0].id));
+    } else {
+      await db.insert(cart).values({ userId, productId, quantity });
+    }
+    return true;
+  } catch (error) {
+    console.error('[Database] Failed to add to cart:', error);
+    return false;
+  }
+}
+
+export async function updateCartItem(cartId: number, quantity: number) {
+  const db = await getDb();
+  if (!db) return false;
+  
+  try {
+    if (quantity <= 0) {
+      await db.delete(cart).where(eq(cart.id, cartId));
+    } else {
+      await db.update(cart).set({ quantity, updatedAt: new Date() }).where(eq(cart.id, cartId));
+    }
+    return true;
+  } catch (error) {
+    console.error('[Database] Failed to update cart item:', error);
+    return false;
+  }
+}
+
+export async function removeFromCart(cartId: number) {
+  const db = await getDb();
+  if (!db) return false;
+  
+  try {
+    await db.delete(cart).where(eq(cart.id, cartId));
+    return true;
+  } catch (error) {
+    console.error('[Database] Failed to remove from cart:', error);
+    return false;
+  }
+}
+
+export async function clearCart(userId: number) {
+  const db = await getDb();
+  if (!db) return false;
+  
+  try {
+    await db.delete(cart).where(eq(cart.userId, userId));
+    return true;
+  } catch (error) {
+    console.error('[Database] Failed to clear cart:', error);
+    return false;
+  }
+}
+
+export async function createOrder(data: any) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  try {
+    const result = await db.insert(orders).values(data);
+    return result;
+  } catch (error) {
+    console.error('[Database] Failed to create order:', error);
+    return undefined;
+  }
+}
+
+export async function addOrderItems(orderId: number, items: any[]) {
+  const db = await getDb();
+  if (!db) return false;
+  
+  try {
+    await db.insert(orderItems).values(
+      items.map(item => ({
+        orderId,
+        productId: item.productId,
+        quantity: item.quantity,
+        priceAtPurchase: item.priceAtPurchase,
+      }))
+    );
+    return true;
+  } catch (error) {
+    console.error('[Database] Failed to add order items:', error);
+    return false;
+  }
+}
+
+export async function updateUserStripeCustomerId(userId: number, stripeCustomerId: string) {
+  const db = await getDb();
+  if (!db) return false;
+  
+  try {
+    await db.update(users).set({ stripeCustomerId }).where(eq(users.id, userId));
+    return true;
+  } catch (error) {
+    console.error('[Database] Failed to update user Stripe customer ID:', error);
+    return false;
+  }
 }

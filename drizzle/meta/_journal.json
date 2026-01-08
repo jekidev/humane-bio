@@ -15,6 +15,13 @@
       "when": 1767861838197,
       "tag": "0001_optimal_nova",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1767882227467,
+      "tag": "0002_lucky_star_brand",
+      "breakpoints": true
     }
   ]
 }

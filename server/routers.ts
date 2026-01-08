@@ -6,7 +6,8 @@ import { z } from "zod";
 import { getDb } from "./db";
 import { chatHistory, newsletterSubscribers } from "../drizzle/schema";
 import { invokeLLM } from "./_core/llm";
-import { getAllProducts, updateProduct, createProduct, getAllOrders, updateOrderStatus, getAllChatHistory, getAdminSetting, setAdminSetting } from "./db";
+import { getAllProducts, updateProduct, createProduct, getAllOrders, updateOrderStatus, getAllChatHistory, getAdminSetting, setAdminSetting, getCartItems, addToCart, removeFromCart, clearCart, getProductById } from "./db";
+import { createCheckoutSession } from "./stripe";
 import { TRPCError } from "@trpc/server";
 
 export const appRouter = router({
@@ -76,6 +77,91 @@ export const appRouter = router({
           return { success: true };
         } catch (error) {
           return { success: true };
+        }
+      }),
+  }),
+
+  cart: router({
+    getItems: protectedProcedure.query(async ({ ctx }) => {
+      if (!ctx.user?.id) throw new TRPCError({ code: 'UNAUTHORIZED' });
+      return getCartItems(ctx.user.id);
+    }),
+
+    addItem: protectedProcedure
+      .input(z.object({ productId: z.number(), quantity: z.number().min(1) }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user?.id) throw new TRPCError({ code: 'UNAUTHORIZED' });
+        const success = await addToCart(ctx.user.id, input.productId, input.quantity);
+        if (!success) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+        return { success: true };
+      }),
+
+    removeItem: protectedProcedure
+      .input(z.object({ cartId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user?.id) throw new TRPCError({ code: 'UNAUTHORIZED' });
+        const success = await removeFromCart(input.cartId);
+        if (!success) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+        return { success: true };
+      }),
+
+    clear: protectedProcedure.mutation(async ({ ctx }) => {
+      if (!ctx.user?.id) throw new TRPCError({ code: 'UNAUTHORIZED' });
+      const success = await clearCart(ctx.user.id);
+      if (!success) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+      return { success: true };
+    }),
+  }),
+
+  checkout: router({
+    createSession: protectedProcedure
+      .input(z.object({
+        shippingName: z.string(),
+        shippingEmail: z.string().email(),
+        shippingAddress: z.string(),
+        shippingCity: z.string(),
+        shippingPostal: z.string(),
+        shippingCountry: z.string(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user?.id || !ctx.user.email) throw new TRPCError({ code: 'UNAUTHORIZED' });
+
+        const cartItems = await getCartItems(ctx.user.id);
+        if (cartItems.length === 0) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Cart is empty' });
+
+        const itemsWithPrices = await Promise.all(
+          cartItems.map(async (item) => {
+            const product = await getProductById(item.productId);
+            if (!product) throw new TRPCError({ code: 'NOT_FOUND' });
+            return {
+              productId: item.productId,
+              quantity: item.quantity,
+              price: product.price,
+            };
+          })
+        );
+
+        const origin = ctx.req.headers.origin || 'https://humanebio.com';
+        const successUrl = `${origin}/order-confirmation?session_id={CHECKOUT_SESSION_ID}`;
+        const cancelUrl = `${origin}/checkout`;
+
+        try {
+          const session = await createCheckoutSession(
+            ctx.user.id,
+            ctx.user.email,
+            ctx.user.name || 'Customer',
+            itemsWithPrices,
+            successUrl,
+            cancelUrl
+          );
+
+          return {
+            sessionId: session.id,
+            url: session.url,
+          };
+        } catch (error) {
+          console.error('[Checkout] Failed to create session:', error);
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
         }
       }),
   }),

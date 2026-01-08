@@ -11,6 +11,8 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Dashboard from "./pages/Dashboard";
 import AdminPanel from "./pages/AdminPanel";
+import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
 import ChatAssistant from "./components/ChatAssistant";
 import HUDElements from "./components/HUDElements";
 
@@ -24,6 +26,8 @@ function Router() {
       <Route path={"/contact"} component={Contact} />
       <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/admin"} component={AdminPanel} />
+      <Route path={"/cart"} component={Cart} />
+      <Route path={"/checkout"} component={Checkout} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

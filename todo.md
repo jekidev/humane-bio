@@ -100,3 +100,19 @@
 - [ ] TB500 (Peptide)
 - [ ] Glutathion (Peptide)
 - [ ] Semax/Selank (Peptide)
+
+
+## Stripe Payment Integration
+- [x] Add Stripe feature to project
+- [x] Configure Stripe API keys in environment
+- [x] Create cart management system
+- [x] Build shopping cart page
+- [x] Create checkout page with Stripe Elements
+- [x] Implement payment intent creation
+- [ ] Handle payment success/failure
+- [ ] Create order confirmation page
+- [ ] Send order confirmation emails
+- [ ] Implement webhook handling for payment events
+- [ ] Test Stripe integration with test cards
+- [x] Cart and checkout API routes (39 tests passing)
+- [x] Cart and checkout UI pages
