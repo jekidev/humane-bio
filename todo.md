@@ -58,6 +58,8 @@
 - [x] Contact information management (Mail, Discord, Telegram, WhatsApp)
 - [ ] File upload system (S3 integration or Google Drive/Dropbox)
 - [ ] Newsletter subscriber management
+- [x] Admin API routes with role-based access control
+- [x] Comprehensive admin tests (27 tests passing)
 
 ## Design & Styling
 - [x] HUD-inspired animated elements throughout site

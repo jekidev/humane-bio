@@ -1,304 +1,390 @@
-import { useAuth } from '@/_core/hooks/useAuth';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import Navigation from '@/components/Navigation';
-import { useLocation } from 'wouter';
-import { Settings, Package, ShoppingCart, MessageSquare, Users, Upload } from 'lucide-react';
 import { useState } from 'react';
+import { useAuth } from '@/_core/hooks/useAuth';
+import { trpc } from '@/lib/trpc';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { toast } from 'sonner';
+import { Plus, Edit2, Save } from 'lucide-react';
+import { useLocation } from 'wouter';
 
 export default function AdminPanel() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState('products');
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [newProduct, setNewProduct] = useState({ name: '', category: 'nootropic', price: 0, description: '' });
+  const [llmSettings, setLlmSettings] = useState({ apiUrl: '', prompt: '' });
+  const [contactSettings, setContactSettings] = useState({ email: '', discord: '', telegram: '', whatsapp: '' } as any);
 
-  if (!isAuthenticated || user?.role !== 'admin') {
+  // Queries
+  const { data: products, isLoading: productsLoading, refetch: refetchProducts } = trpc.admin.getProducts.useQuery(undefined, {
+    enabled: user?.role === 'admin',
+  });
+
+  const { data: orders, isLoading: ordersLoading, refetch: refetchOrders } = trpc.admin.getOrders.useQuery(undefined, {
+    enabled: user?.role === 'admin',
+  });
+
+  const { data: chatHistory, isLoading: chatLoading } = trpc.admin.getChatHistory.useQuery(undefined, {
+    enabled: user?.role === 'admin',
+  });
+
+  const { data: currentLLMSettings } = trpc.admin.getLLMSettings.useQuery(undefined, {
+    enabled: user?.role === 'admin',
+  });
+
+  const { data: currentContactSettings } = trpc.admin.getContactSettings.useQuery(undefined, {
+    enabled: user?.role === 'admin',
+  });
+
+  // Update settings when data loads
+  if (currentLLMSettings && !llmSettings.apiUrl) {
+    setLlmSettings(currentLLMSettings);
+  }
+  if (currentContactSettings && !contactSettings.email) {
+    setContactSettings(currentContactSettings);
+  }
+
+  // Mutations
+  const updateProductMutation = trpc.admin.updateProduct.useMutation({
+    onSuccess: () => {
+      toast.success('Product updated successfully');
+      setEditingProduct(null);
+      refetchProducts();
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
+  const createProductMutation = trpc.admin.createProduct.useMutation({
+    onSuccess: () => {
+      toast.success('Product created successfully');
+      setNewProduct({ name: '', category: 'nootropic', price: 0, description: '' });
+      refetchProducts();
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
+  const updateOrderStatusMutation = trpc.admin.updateOrderStatus.useMutation({
+    onSuccess: () => {
+      toast.success('Order status updated');
+      refetchOrders();
+    },
+    onError: (error) => toast.error(error.message),
+  });
+
+  const updateLLMSettingsMutation = trpc.admin.updateLLMSettings.useMutation({
+    onSuccess: () => toast.success('LLM settings updated'),
+    onError: (error) => toast.error(error.message),
+  });
+
+  const updateContactSettingsMutation = trpc.admin.updateContactSettings.useMutation({
+    onSuccess: () => toast.success('Contact settings updated'),
+    onError: (error) => toast.error(error.message),
+  });
+
+  if (authLoading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  if (user?.role !== 'admin') {
     setLocation('/');
     return null;
   }
 
-  const [products, setProducts] = useState([
-    { id: 1, name: 'Bromantan', category: 'nootropic', price: 4999, active: true },
-    { id: 2, name: 'BPC 156', category: 'peptide', price: 7999, active: true },
-  ]);
-
-  const [orders, setOrders] = useState([
-    {
-      id: 'ORD-001',
-      user: 'John Doe',
-      email: 'john@example.com',
-      total: 15999,
-      status: 'paid',
-      date: '2026-01-08',
-      items: 3,
-      shipping: { address: '123 Main St', city: 'New York', postal: '10001', country: 'US' },
-    },
-  ]);
-
-  const [settings, setSettings] = useState({
-    llmApiKey: '***',
-    llmApiUrl: 'https://api.openai.com/v1',
-    llmSystemPrompt: 'You are HumaneBio\'s AI assistant...',
-    contactEmail: 'support@humanebio.com',
-    contactDiscord: 'https://discord.gg/humanebio',
-    contactTelegram: '@humanebio',
-    contactWhatsapp: '+1234567890',
-  });
-
-  const [chatHistory, setChatHistory] = useState([
-    { id: 1, user: 'User123', message: 'What\'s the best stack for focus?', response: 'I recommend...', date: '2026-01-08' },
-  ]);
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-800 molecular-bg">
-      <Navigation />
-
-      {/* Header */}
-      <section className="py-12 border-b border-cyan-500/10">
-        <div className="container max-w-6xl">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold text-white mb-2">Admin Panel</h1>
-              <p className="text-gray-400">Manage products, orders, and settings</p>
-            </div>
-            <div className="p-4 rounded-lg bg-cyan-500/10 border border-cyan-500/20">
-              <Settings className="w-8 h-8 text-cyan-400" />
-            </div>
-          </div>
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-black mb-2">Admin Panel</h1>
+          <p className="text-gray-600">Manage products, orders, and settings</p>
         </div>
-      </section>
 
-      {/* Main Content */}
-      <div className="container max-w-6xl py-12">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="bg-slate-800 border border-cyan-500/20 grid w-full grid-cols-5">
-            <TabsTrigger value="products" className="data-[state=active]:bg-cyan-600/30 data-[state=active]:text-cyan-300">
-              <Package className="w-4 h-4 mr-2" />
-              Products
-            </TabsTrigger>
-            <TabsTrigger value="orders" className="data-[state=active]:bg-cyan-600/30 data-[state=active]:text-cyan-300">
-              <ShoppingCart className="w-4 h-4 mr-2" />
-              Orders
-            </TabsTrigger>
-            <TabsTrigger value="chat" className="data-[state=active]:bg-cyan-600/30 data-[state=active]:text-cyan-300">
-              <MessageSquare className="w-4 h-4 mr-2" />
-              Chat
-            </TabsTrigger>
-            <TabsTrigger value="newsletter" className="data-[state=active]:bg-cyan-600/30 data-[state=active]:text-cyan-300">
-              <Users className="w-4 h-4 mr-2" />
-              Newsletter
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="data-[state=active]:bg-cyan-600/30 data-[state=active]:text-cyan-300">
-              <Settings className="w-4 h-4 mr-2" />
-              Settings
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 bg-white border border-gray-200">
+            <TabsTrigger value="products" className="data-[state=active]:bg-black data-[state=active]:text-white">Products</TabsTrigger>
+            <TabsTrigger value="orders" className="data-[state=active]:bg-black data-[state=active]:text-white">Orders</TabsTrigger>
+            <TabsTrigger value="chat" className="data-[state=active]:bg-black data-[state=active]:text-white">Chat</TabsTrigger>
+            <TabsTrigger value="settings" className="data-[state=active]:bg-black data-[state=active]:text-white">Settings</TabsTrigger>
           </TabsList>
 
           {/* Products Tab */}
           <TabsContent value="products" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold text-white">Product Management</h2>
-              <Button className="bg-cyan-600 hover:bg-cyan-500 text-white">
-                <Upload className="w-4 h-4 mr-2" />
-                Add Product
+            <Card className="p-6 border border-gray-200">
+              <h2 className="text-2xl font-bold text-black mb-6">Add New Product</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <Input
+                  placeholder="Product name"
+                  value={newProduct.name}
+                  onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                  className="border-gray-300"
+                />
+                <select
+                  value={newProduct.category}
+                  onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+                  className="border border-gray-300 rounded px-3 py-2"
+                >
+                  <option value="nootropic">Nootropic</option>
+                  <option value="peptide">Peptide</option>
+                </select>
+                <Input
+                  type="number"
+                  placeholder="Price (cents)"
+                  value={newProduct.price}
+                  onChange={(e) => setNewProduct({ ...newProduct, price: parseInt(e.target.value) || 0 })}
+                  className="border-gray-300"
+                />
+              </div>
+              <Textarea
+                placeholder="Description"
+                value={newProduct.description}
+                onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
+                className="border-gray-300 mb-4"
+              />
+              <Button
+                onClick={() => createProductMutation.mutate(newProduct as any)}
+                disabled={!newProduct.name || createProductMutation.isPending}
+                className="bg-black text-white hover:bg-gray-900"
+              >
+                <Plus className="mr-2 h-4 w-4" /> Add Product
               </Button>
-            </div>
+            </Card>
 
-            <div className="space-y-4">
-              {products.map((product) => (
-                <Card key={product.id} className="p-6 border-cyan-500/20 bg-gradient-to-br from-slate-800 to-slate-900">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-semibold text-white">{product.name}</h3>
-                        <Badge className={product.active ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}>
-                          {product.active ? 'Active' : 'Inactive'}
-                        </Badge>
+            <Card className="p-6 border border-gray-200">
+              <h2 className="text-2xl font-bold text-black mb-6">Existing Products</h2>
+              {productsLoading ? (
+                <p className="text-gray-600">Loading products...</p>
+              ) : (
+                <div className="space-y-4">
+                  {products?.map((product) => (
+                    <div key={product.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <h3 className="font-bold text-black">{product.name}</h3>
+                          <p className="text-sm text-gray-600">{product.category} • ${(product.price / 100).toFixed(2)}</p>
+                        </div>
+                        <span className={`px-3 py-1 rounded text-sm font-semibold ${product.active === 'true' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                          {product.active === 'true' ? 'Active' : 'Inactive'}
+                        </span>
                       </div>
-                      <p className="text-sm text-gray-400">
-                        Category: {product.category} • Price: ${(product.price / 100).toFixed(2)}
-                      </p>
+                      {product.description && <p className="text-sm text-gray-600 mb-3">{product.description}</p>}
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setEditingProduct(product)}
+                            className="border-gray-300"
+                          >
+                            <Edit2 className="mr-2 h-4 w-4" /> Edit
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-md bg-white">
+                          <DialogHeader>
+                            <DialogTitle className="text-black">Edit Product</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <Input
+                              placeholder="Name"
+                              defaultValue={editingProduct?.name}
+                              onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
+                              className="border-gray-300"
+                            />
+                            <Textarea
+                              placeholder="Description"
+                              defaultValue={editingProduct?.description}
+                              onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
+                              className="border-gray-300"
+                            />
+                            <Input
+                              type="number"
+                              placeholder="Price (cents)"
+                              defaultValue={editingProduct?.price}
+                              onChange={(e) => setEditingProduct({ ...editingProduct, price: parseInt(e.target.value) })}
+                              className="border-gray-300"
+                            />
+                            <Input
+                              placeholder="Image URL"
+                              defaultValue={editingProduct?.image}
+                              onChange={(e) => setEditingProduct({ ...editingProduct, image: e.target.value })}
+                              className="border-gray-300"
+                            />
+                            <Button
+                              onClick={() => updateProductMutation.mutate({ id: editingProduct.id, ...editingProduct })}
+                              disabled={updateProductMutation.isPending}
+                              className="w-full bg-black text-white hover:bg-gray-900"
+                            >
+                              <Save className="mr-2 h-4 w-4" /> Save Changes
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10">
-                        Edit
-                      </Button>
-                      <Button variant="outline" size="sm" className="border-red-500/30 text-red-300 hover:bg-red-500/10">
-                        Delete
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
+                  ))}
+                </div>
+              )}
+            </Card>
           </TabsContent>
 
           {/* Orders Tab */}
           <TabsContent value="orders" className="space-y-6">
-            <h2 className="text-2xl font-bold text-white">Order Management</h2>
-
-            <div className="space-y-4">
-              {orders.map((order) => (
-                <Card key={order.id} className="p-6 border-cyan-500/20 bg-gradient-to-br from-slate-800 to-slate-900">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-lg font-semibold text-white mb-1">{order.id}</h3>
-                        <p className="text-sm text-gray-400">{order.user} • {order.email}</p>
-                      </div>
-                      <Badge className="bg-green-500/20 text-green-300">Paid</Badge>
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <p className="text-gray-400 mb-1">Shipping Address</p>
-                        <p className="text-white">
-                          {order.shipping.address}<br />
-                          {order.shipping.city}, {order.shipping.postal}<br />
-                          {order.shipping.country}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-gray-400 mb-1">Order Details</p>
-                        <p className="text-white">
-                          Items: {order.items}<br />
-                          Total: ${(order.total / 100).toFixed(2)}<br />
-                          Date: {order.date}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10">
-                        View Details
-                      </Button>
-                      <Button variant="outline" size="sm" className="border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10">
-                        Mark Shipped
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
+            <Card className="p-6 border border-gray-200">
+              <h2 className="text-2xl font-bold text-black mb-6">Orders</h2>
+              {ordersLoading ? (
+                <p className="text-gray-600">Loading orders...</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-3 px-4 font-bold text-black">Order ID</th>
+                        <th className="text-left py-3 px-4 font-bold text-black">Customer</th>
+                        <th className="text-left py-3 px-4 font-bold text-black">Amount</th>
+                        <th className="text-left py-3 px-4 font-bold text-black">Status</th>
+                        <th className="text-left py-3 px-4 font-bold text-black">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {orders?.map((order) => (
+                        <tr key={order.id} className="border-b border-gray-100 hover:bg-gray-50">
+                          <td className="py-3 px-4 text-gray-700">#{order.id}</td>
+                          <td className="py-3 px-4 text-gray-700">{order.shippingName || 'N/A'}</td>
+                          <td className="py-3 px-4 text-gray-700">${(order.totalAmount / 100).toFixed(2)}</td>
+                          <td className="py-3 px-4">
+                            <span className={`px-3 py-1 rounded text-xs font-semibold ${
+                              order.status === 'paid' ? 'bg-green-100 text-green-800' :
+                              order.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
+                              order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                              'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {order.status}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <select
+                              value={order.status}
+                              onChange={(e) => updateOrderStatusMutation.mutate({ orderId: order.id, status: e.target.value as any })}
+                              className="border border-gray-300 rounded px-2 py-1 text-sm"
+                            >
+                              <option value="pending">Pending</option>
+                              <option value="paid">Paid</option>
+                              <option value="shipped">Shipped</option>
+                              <option value="delivered">Delivered</option>
+                              <option value="cancelled">Cancelled</option>
+                            </select>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </Card>
           </TabsContent>
 
           {/* Chat Tab */}
           <TabsContent value="chat" className="space-y-6">
-            <h2 className="text-2xl font-bold text-white">Chat History</h2>
-
-            <div className="space-y-4">
-              {chatHistory.map((chat) => (
-                <Card key={chat.id} className="p-6 border-cyan-500/20 bg-gradient-to-br from-slate-800 to-slate-900">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <p className="font-semibold text-white">{chat.user}</p>
-                      <p className="text-xs text-gray-400">{chat.date}</p>
+            <Card className="p-6 border border-gray-200">
+              <h2 className="text-2xl font-bold text-black mb-6">Chat History</h2>
+              {chatLoading ? (
+                <p className="text-gray-600">Loading chat history...</p>
+              ) : (
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {chatHistory?.map((msg) => (
+                    <div key={msg.id} className={`p-3 rounded ${msg.role === 'user' ? 'bg-blue-50 border-l-4 border-blue-300' : 'bg-gray-50 border-l-4 border-gray-300'}`}>
+                      <p className="text-xs font-bold text-gray-600 mb-1">{msg.role.toUpperCase()}</p>
+                      <p className="text-sm text-gray-700">{msg.content}</p>
+                      <p className="text-xs text-gray-500 mt-1">{new Date(msg.createdAt).toLocaleString()}</p>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-400 mb-2">User Message:</p>
-                      <p className="text-white bg-slate-700/50 p-3 rounded">{chat.message}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-400 mb-2">Assistant Response:</p>
-                      <p className="text-white bg-slate-700/50 p-3 rounded">{chat.response}</p>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          {/* Newsletter Tab */}
-          <TabsContent value="newsletter" className="space-y-6">
-            <h2 className="text-2xl font-bold text-white">Newsletter Subscribers</h2>
-            <Card className="p-6 border-cyan-500/20 bg-gradient-to-br from-slate-800 to-slate-900 text-center">
-              <p className="text-gray-400">Newsletter subscriber management coming soon</p>
+                  ))}
+                </div>
+              )}
             </Card>
           </TabsContent>
 
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-6">
-            <h2 className="text-2xl font-bold text-white">Settings</h2>
-
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* LLM Settings */}
-              <Card className="p-6 border-cyan-500/20 bg-gradient-to-br from-slate-800 to-slate-900">
-                <h3 className="text-lg font-semibold text-white mb-4">LLM Configuration</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm text-gray-300 mb-2">API Key</label>
-                    <Input
-                      type="password"
-                      value={settings.llmApiKey}
-                      className="bg-slate-700 border-slate-600 text-white"
-                      readOnly
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-300 mb-2">API URL</label>
-                    <Input
-                      type="text"
-                      value={settings.llmApiUrl}
-                      className="bg-slate-700 border-slate-600 text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-300 mb-2">System Prompt</label>
-                    <textarea
-                      value={settings.llmSystemPrompt}
-                      className="w-full px-4 py-2 rounded-lg bg-slate-700 border border-slate-600 text-white focus:outline-none focus:ring-2 focus:ring-cyan-500/50 min-h-24"
-                    />
-                  </div>
-                  <Button className="w-full bg-cyan-600 hover:bg-cyan-500 text-white">
-                    Save LLM Settings
-                  </Button>
+            {/* LLM Settings */}
+            <Card className="p-6 border border-gray-200">
+              <h2 className="text-2xl font-bold text-black mb-6">LLM Settings</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-black mb-2">API URL</label>
+                  <Input
+                    value={llmSettings.apiUrl}
+                    onChange={(e) => setLlmSettings({ ...llmSettings, apiUrl: e.target.value })}
+                    placeholder="https://api.example.com"
+                    className="border-gray-300"
+                  />
                 </div>
-              </Card>
-
-              {/* Contact Settings */}
-              <Card className="p-6 border-cyan-500/20 bg-gradient-to-br from-slate-800 to-slate-900">
-                <h3 className="text-lg font-semibold text-white mb-4">Contact Information</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm text-gray-300 mb-2">Email</label>
-                    <Input
-                      type="email"
-                      value={settings.contactEmail}
-                      className="bg-slate-700 border-slate-600 text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-300 mb-2">Discord</label>
-                    <Input
-                      type="text"
-                      value={settings.contactDiscord}
-                      className="bg-slate-700 border-slate-600 text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-300 mb-2">Telegram</label>
-                    <Input
-                      type="text"
-                      value={settings.contactTelegram}
-                      className="bg-slate-700 border-slate-600 text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-300 mb-2">WhatsApp</label>
-                    <Input
-                      type="text"
-                      value={settings.contactWhatsapp}
-                      className="bg-slate-700 border-slate-600 text-white"
-                    />
-                  </div>
-                  <Button className="w-full bg-cyan-600 hover:bg-cyan-500 text-white">
-                    Save Contact Settings
-                  </Button>
+                <div>
+                  <label className="block text-sm font-semibold text-black mb-2">System Prompt</label>
+                  <Textarea
+                    value={llmSettings.prompt}
+                    onChange={(e) => setLlmSettings({ ...llmSettings, prompt: e.target.value })}
+                    placeholder="Enter the system prompt for the LLM"
+                    className="border-gray-300 h-32"
+                  />
                 </div>
-              </Card>
-            </div>
+                <Button
+                  onClick={() => updateLLMSettingsMutation.mutate(llmSettings)}
+                  disabled={updateLLMSettingsMutation.isPending}
+                  className="bg-black text-white hover:bg-gray-900"
+                >
+                  <Save className="mr-2 h-4 w-4" /> Save LLM Settings
+                </Button>
+              </div>
+            </Card>
+
+            {/* Contact Settings */}
+            <Card className="p-6 border border-gray-200">
+              <h2 className="text-2xl font-bold text-black mb-6">Contact Information</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-black mb-2">Email</label>
+                  <Input
+                    value={contactSettings.email || ''}
+                    onChange={(e) => setContactSettings({ ...contactSettings, email: e.target.value })}
+                    placeholder="contact@humanebio.com"
+                    className="border-gray-300"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-black mb-2">Discord</label>
+                  <Input
+                    value={contactSettings.discord || ''}
+                    onChange={(e) => setContactSettings({ ...contactSettings, discord: e.target.value })}
+                    placeholder="https://discord.gg/..."
+                    className="border-gray-300"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-black mb-2">Telegram</label>
+                  <Input
+                    value={contactSettings.telegram || ''}
+                    onChange={(e) => setContactSettings({ ...contactSettings, telegram: e.target.value })}
+                    placeholder="@humanebio"
+                    className="border-gray-300"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-black mb-2">WhatsApp</label>
+                  <Input
+                    value={contactSettings.whatsapp || ''}
+                    onChange={(e) => setContactSettings({ ...contactSettings, whatsapp: e.target.value })}
+                    placeholder="+1234567890"
+                    className="border-gray-300"
+                  />
+                </div>
+                <Button
+                  onClick={() => updateContactSettingsMutation.mutate(contactSettings as any)}
+                  disabled={updateContactSettingsMutation.isPending}
+                  className="bg-black text-white hover:bg-gray-900"
+                >
+                  <Save className="mr-2 h-4 w-4" /> Save Contact Settings
+                </Button>
+              </div>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

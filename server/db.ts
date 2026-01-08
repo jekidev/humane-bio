@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, products, orders, orderItems, chatHistory, adminSettings } from "../drizzle/schema";
+import { InsertUser, InsertProduct, users, products, orders, orderItems, chatHistory, adminSettings } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -164,4 +164,61 @@ export async function setAdminSetting(key: string, value: string) {
     console.error('[Database] Failed to set admin setting:', error);
     return false;
   }
+}
+
+export async function getAllProducts() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(products).orderBy(desc(products.createdAt));
+}
+
+export async function updateProduct(id: number, data: Partial<InsertProduct>) {
+  const db = await getDb();
+  if (!db) return false;
+  
+  try {
+    await db.update(products).set(data).where(eq(products.id, id));
+    return true;
+  } catch (error) {
+    console.error('[Database] Failed to update product:', error);
+    return false;
+  }
+}
+
+export async function createProduct(data: InsertProduct) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  try {
+    const result = await db.insert(products).values(data);
+    return result;
+  } catch (error) {
+    console.error('[Database] Failed to create product:', error);
+    return undefined;
+  }
+}
+
+export async function getAllOrders() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(orders).orderBy(desc(orders.createdAt));
+}
+
+export async function updateOrderStatus(orderId: number, status: string) {
+  const db = await getDb();
+  if (!db) return false;
+  
+  try {
+    await db.update(orders).set({ status: status as any }).where(eq(orders.id, orderId));
+    return true;
+  } catch (error) {
+    console.error('[Database] Failed to update order status:', error);
+    return false;
+  }
+}
+
+export async function getAllChatHistory(limit: number = 100) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(chatHistory).orderBy(desc(chatHistory.createdAt)).limit(limit);
 }
