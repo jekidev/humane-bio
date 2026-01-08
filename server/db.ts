@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, products, orders, orderItems, chatHistory, adminSettings } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,79 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+export async function getUserById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+// Products
+export async function getProducts(category?: string) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  if (category) {
+    return db.select().from(products).where(eq(products.active, 'true' as any));
+  }
+  return db.select().from(products).where(eq(products.active, 'true' as any));
+}
+
+export async function getProductById(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(products).where(eq(products.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+// Orders
+export async function getUserOrders(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(orders).where(eq(orders.userId, userId));
+}
+
+export async function getOrderWithItems(orderId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  const order = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+  if (!order.length) return undefined;
+  
+  const items = await db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
+  return { ...order[0], items };
+}
+
+// Chat History
+export async function getChatHistory(userId?: number, limit: number = 50) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  if (userId) {
+    return db.select().from(chatHistory).where(eq(chatHistory.userId, userId)).orderBy(chatHistory.createdAt).limit(limit);
+  }
+  return db.select().from(chatHistory).orderBy(chatHistory.createdAt).limit(limit);
+}
+
+// Admin Settings
+export async function getAdminSetting(key: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(adminSettings).where(eq(adminSettings.key, key)).limit(1);
+  return result.length > 0 ? result[0].value : undefined;
+}
+
+export async function setAdminSetting(key: string, value: string) {
+  const db = await getDb();
+  if (!db) return false;
+  
+  try {
+    await db.insert(adminSettings).values({ key, value }).onDuplicateKeyUpdate({
+      set: { value },
+    });
+    return true;
+  } catch (error) {
+    console.error('[Database] Failed to set admin setting:', error);
+    return false;
+  }
+}
