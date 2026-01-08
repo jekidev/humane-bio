@@ -6,7 +6,7 @@ import { z } from "zod";
 import { getDb } from "./db";
 import { chatHistory, newsletterSubscribers } from "../drizzle/schema";
 import { invokeLLM } from "./_core/llm";
-import { getAllProducts, updateProduct, createProduct, getAllOrders, updateOrderStatus, getAllChatHistory, getAdminSetting, setAdminSetting, getCartItems, addToCart, removeFromCart, clearCart, getProductById } from "./db";
+import { getAllProducts, updateProduct, createProduct, getAllOrders, updateOrderStatus, getAllChatHistory, getAdminSetting, setAdminSetting, getCartItems, addToCart, removeFromCart, clearCart, getProductById, createReview, getProductReviews, getProductAverageRating, updateReviewApproval, deleteReview, getAllPendingReviews } from "./db";
 import { createCheckoutSession } from "./stripe";
 import { TRPCError } from "@trpc/server";
 import { uploadProductImage, validateImageFile } from "./product-upload";
@@ -48,9 +48,7 @@ export const appRouter = router({
           ],
         });
 
-        const assistantMessage = typeof response.choices[0]?.message?.content === 'string' 
-          ? response.choices[0].message.content 
-          : 'Unable to generate response';
+        const assistantMessage = response.choices[0]?.message?.content || "I couldn't generate a response. Please try again.";
 
         if (db && userId) {
           await db.insert(chatHistory).values({
@@ -60,108 +58,95 @@ export const appRouter = router({
           } as any);
         }
 
-        return { content: assistantMessage };
+        return {
+          message: assistantMessage,
+        };
       }),
-  }),
 
-  newsletter: router({
-    subscribe: publicProcedure
+    subscribeNewsletter: publicProcedure
       .input(z.object({ email: z.string().email() }))
       .mutation(async ({ input }) => {
         const db = await getDb();
-        if (!db) throw new Error('Database unavailable');
+        if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
 
         try {
-          await db.insert(newsletterSubscribers).values({
-            email: input.email,
-          });
-          return { success: true };
-        } catch (error) {
-          return { success: true };
+          await db.insert(newsletterSubscribers).values({ email: input.email });
+          return { success: true, message: 'Successfully subscribed to newsletter!' };
+        } catch (error: any) {
+          if (error?.message?.includes('Duplicate')) {
+            return { success: false, message: 'Email already subscribed' };
+          }
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
         }
+      }),
+  }),
+
+  products: router({
+    list: publicProcedure.query(async () => {
+      return getAllProducts();
+    }),
+
+    getById: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return getProductById(input.id);
       }),
   }),
 
   cart: router({
     getItems: protectedProcedure.query(async ({ ctx }) => {
-      if (!ctx.user?.id) throw new TRPCError({ code: 'UNAUTHORIZED' });
-      return getCartItems(ctx.user.id);
+      return getCartItems(ctx.user!.id);
     }),
 
     addItem: protectedProcedure
-      .input(z.object({ productId: z.number(), quantity: z.number().min(1) }))
+      .input(z.object({
+        productId: z.number(),
+        quantity: z.number().min(1),
+      }))
       .mutation(async ({ input, ctx }) => {
-        if (!ctx.user?.id) throw new TRPCError({ code: 'UNAUTHORIZED' });
-        const success = await addToCart(ctx.user.id, input.productId, input.quantity);
+        const success = await addToCart(ctx.user!.id, input.productId, input.quantity);
         if (!success) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
         return { success: true };
       }),
 
     removeItem: protectedProcedure
       .input(z.object({ cartId: z.number() }))
-      .mutation(async ({ input, ctx }) => {
-        if (!ctx.user?.id) throw new TRPCError({ code: 'UNAUTHORIZED' });
+      .mutation(async ({ input }) => {
         const success = await removeFromCart(input.cartId);
         if (!success) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
         return { success: true };
       }),
 
     clear: protectedProcedure.mutation(async ({ ctx }) => {
-      if (!ctx.user?.id) throw new TRPCError({ code: 'UNAUTHORIZED' });
-      const success = await clearCart(ctx.user.id);
+      const success = await clearCart(ctx.user!.id);
       if (!success) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
       return { success: true };
     }),
-  }),
 
-  checkout: router({
-    createSession: protectedProcedure
+    checkout: protectedProcedure
       .input(z.object({
-        shippingName: z.string(),
-        shippingEmail: z.string().email(),
-        shippingAddress: z.string(),
-        shippingCity: z.string(),
-        shippingPostal: z.string(),
-        shippingCountry: z.string(),
+        items: z.array(z.object({
+          productId: z.number(),
+          quantity: z.number(),
+          price: z.number(),
+        })),
+        successUrl: z.string(),
+        cancelUrl: z.string(),
       }))
       .mutation(async ({ input, ctx }) => {
-        if (!ctx.user?.id || !ctx.user.email) throw new TRPCError({ code: 'UNAUTHORIZED' });
-
-        const cartItems = await getCartItems(ctx.user.id);
-        if (cartItems.length === 0) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Cart is empty' });
-
-        const itemsWithPrices = await Promise.all(
-          cartItems.map(async (item) => {
-            const product = await getProductById(item.productId);
-            if (!product) throw new TRPCError({ code: 'NOT_FOUND' });
-            return {
-              productId: item.productId,
-              quantity: item.quantity,
-              price: product.price,
-            };
-          })
-        );
-
-        const origin = ctx.req.headers.origin || 'https://humanebio.com';
-        const successUrl = `${origin}/order-confirmation?session_id={CHECKOUT_SESSION_ID}`;
-        const cancelUrl = `${origin}/checkout`;
-
         try {
           const session = await createCheckoutSession(
-            ctx.user.id,
-            ctx.user.email,
-            ctx.user.name || 'Customer',
-            itemsWithPrices,
-            successUrl,
-            cancelUrl
+            ctx.user!.id,
+            ctx.user!.email || '',
+            ctx.user!.name || 'Customer',
+            input.items,
+            input.successUrl,
+            input.cancelUrl
           );
-
-          return {
-            sessionId: session.id,
-            url: session.url,
-          };
+          if (!session?.url) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+          return { sessionUrl: session.url };
         } catch (error) {
-          console.error('[Checkout] Failed to create session:', error);
+          console.error('[Checkout] Error:', error);
           throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
         }
       }),
@@ -174,30 +159,12 @@ export const appRouter = router({
       return getAllProducts();
     }),
 
-    updateProduct: protectedProcedure
-      .input(z.object({
-        id: z.number(),
-        name: z.string().optional(),
-        description: z.string().optional(),
-        price: z.number().optional(),
-        image: z.string().optional(),
-        scientificLinks: z.string().optional(),
-        active: z.enum(['true', 'false']).optional(),
-      }))
-      .mutation(async ({ input, ctx }) => {
-        if (ctx.user?.role !== 'admin') throw new TRPCError({ code: 'FORBIDDEN' });
-        const { id, ...data } = input;
-        const success = await updateProduct(id, data as any);
-        if (!success) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
-        return { success: true };
-      }),
-
     createProduct: protectedProcedure
       .input(z.object({
         name: z.string(),
         category: z.enum(['nootropic', 'peptide']),
         description: z.string().optional(),
-        price: z.number(),
+        price: z.number().min(0),
         image: z.string().optional(),
         scientificLinks: z.string().optional(),
       }))
@@ -251,6 +218,24 @@ export const appRouter = router({
           if (error instanceof TRPCError) throw error;
           throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
         }
+      }),
+
+    updateProduct: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().optional(),
+        category: z.enum(['nootropic', 'peptide']).optional(),
+        description: z.string().optional(),
+        price: z.number().optional(),
+        image: z.string().optional(),
+        scientificLinks: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user?.role !== 'admin') throw new TRPCError({ code: 'FORBIDDEN' });
+        const { id, ...updates } = input;
+        const success = await updateProduct(id, updates as any);
+        if (!success) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+        return { success: true };
       }),
 
     updateProductPrice: protectedProcedure
@@ -336,6 +321,78 @@ export const appRouter = router({
         if (input.telegram) await setAdminSetting('contact_telegram', input.telegram);
         if (input.whatsapp) await setAdminSetting('contact_whatsapp', input.whatsapp);
         return { success: true };
+      }),
+
+    // Review management
+    getPendingReviews: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user?.role !== 'admin') throw new TRPCError({ code: 'FORBIDDEN' });
+      return getAllPendingReviews();
+    }),
+
+    approveReview: protectedProcedure
+      .input(z.object({
+        reviewId: z.number(),
+        approved: z.boolean(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user?.role !== 'admin') throw new TRPCError({ code: 'FORBIDDEN' });
+        const success = await updateReviewApproval(input.reviewId, input.approved);
+        if (!success) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+        return { success: true };
+      }),
+
+    deleteReview: protectedProcedure
+      .input(z.object({ reviewId: z.number() }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user?.role !== 'admin') throw new TRPCError({ code: 'FORBIDDEN' });
+        const success = await deleteReview(input.reviewId);
+        if (!success) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+        return { success: true };
+      }),
+  }),
+
+  reviews: router({
+    submitReview: publicProcedure
+      .input(z.object({
+        productId: z.number(),
+        rating: z.number().min(1).max(5),
+        title: z.string().min(1).max(255),
+        content: z.string().min(1).max(5000),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        try {
+          const result = await createReview({
+            productId: input.productId,
+            userId: ctx.user?.id || null,
+            rating: input.rating,
+            title: input.title,
+            content: input.content,
+            verified: ctx.user?.id ? 'false' : 'false',
+            approved: 'false',
+          });
+          if (!result) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+          return { success: true, message: 'Review submitted for moderation' };
+        } catch (error) {
+          console.error('[Reviews] Error submitting review:', error);
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+        }
+      }),
+
+    getProductReviews: publicProcedure
+      .input(z.object({ productId: z.number() }))
+      .query(async ({ input }) => {
+        return getProductReviews(input.productId, true);
+      }),
+
+    getProductRating: publicProcedure
+      .input(z.object({ productId: z.number() }))
+      .query(async ({ input }) => {
+        const avgRating = await getProductAverageRating(input.productId);
+        const reviews = await getProductReviews(input.productId, true);
+        return {
+          averageRating: avgRating,
+          totalReviews: reviews.length,
+        };
       }),
   }),
 });

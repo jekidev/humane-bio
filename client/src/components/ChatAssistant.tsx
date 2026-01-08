@@ -16,7 +16,7 @@ export default function ChatAssistant() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const chatMutation = trpc.chat.sendMessage.useMutation();
-  const newsletterMutation = trpc.newsletter.subscribe.useMutation();
+  const newsletterMutation = trpc.chat.subscribeNewsletter.useMutation();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -46,7 +46,7 @@ export default function ChatAssistant() {
 
     try {
       const response = await chatMutation.mutateAsync({ message: userMessage });
-      setMessages((prev) => [...prev, { role: 'assistant', content: response.content }]);
+      setMessages((prev) => [...prev, { role: 'assistant', content: response.message }]);
 
       // Show newsletter prompt after a few messages
       if (messages.length > 4 && !showNewsletterPrompt) {

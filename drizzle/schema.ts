@@ -122,3 +122,21 @@ export const cart = mysqlTable("cart", {
 
 export type Cart = typeof cart.$inferSelect;
 export type InsertCart = typeof cart.$inferInsert;
+
+// Reviews table
+export const reviews = mysqlTable("reviews", {
+  id: int("id").autoincrement().primaryKey(),
+  productId: int("productId").notNull(),
+  userId: int("userId").notNull(),
+  rating: int("rating").notNull(), // 1-5 stars
+  title: varchar("title", { length: 255 }).notNull(),
+  content: text("content").notNull(),
+  verified: mysqlEnum("verified", ["true", "false"]).default("false").notNull(), // verified purchase
+  helpful: int("helpful").default(0).notNull(), // count of helpful votes
+  approved: mysqlEnum("approved", ["true", "false"]).default("false").notNull(), // admin moderation
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Review = typeof reviews.$inferSelect;
+export type InsertReview = typeof reviews.$inferInsert;

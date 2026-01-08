@@ -38,14 +38,14 @@ export default function Checkout() {
     enabled: isAuthenticated,
   });
 
-  const createSessionMutation = trpc.checkout.createSession.useMutation({
-    onSuccess: (data) => {
-      if (data.url) {
-        window.open(data.url, "_blank");
+  const createSessionMutation = trpc.cart.checkout.useMutation({
+    onSuccess: (data: any) => {
+      if (data.sessionUrl) {
+        window.location.href = data.sessionUrl;
         toast.success("Redirecting to payment...");
       }
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message || "Failed to create checkout session");
     },
   });
@@ -79,7 +79,17 @@ export default function Checkout() {
     try {
       checkoutSchema.parse(formData);
       setErrors({});
-      createSessionMutation.mutate(formData);
+      const successUrl = `${window.location.origin}/success`;
+      const cancelUrl = `${window.location.origin}/cart`;
+      createSessionMutation.mutate({
+        items: cartItems.map(item => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          price: item.quantity * 100,
+        })),
+        successUrl,
+        cancelUrl,
+      });
     } catch (error) {
       if (error instanceof z.ZodError) {
         const newErrors: Partial<CheckoutFormData> = {};
@@ -194,7 +204,7 @@ export default function Checkout() {
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={createSessionMutation.isPending}
+                  disabled={createSessionMutation.isPending || cartItems.length === 0}
                 >
                   {createSessionMutation.isPending ? (
                     <>

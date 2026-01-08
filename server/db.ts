@@ -1,6 +1,6 @@
 import { drizzle } from "drizzle-orm/mysql2";
-import { eq, desc, and } from 'drizzle-orm';
-import { InsertUser, InsertProduct, users, products, orders, orderItems, chatHistory, adminSettings, cart } from "../drizzle/schema";
+import { eq, desc, and, avg } from 'drizzle-orm';
+import { InsertUser, InsertProduct, users, products, orders, orderItems, chatHistory, adminSettings, cart, reviews } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -340,5 +340,89 @@ export async function updateUserStripeCustomerId(userId: number, stripeCustomerI
   } catch (error) {
     console.error('[Database] Failed to update user Stripe customer ID:', error);
     return false;
+  }
+}
+
+
+// Review functions
+export async function createReview(data: any) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  try {
+    const result = await db.insert(reviews).values(data);
+    return result;
+  } catch (error) {
+    console.error('[Database] Failed to create review:', error);
+    return undefined;
+  }
+}
+
+export async function getProductReviews(productId: number, approvedOnly: boolean = true) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  try {
+    if (approvedOnly) {
+      return db.select().from(reviews).where(and(eq(reviews.productId, productId), eq(reviews.approved, 'true'))).orderBy(desc(reviews.createdAt));
+    }
+    return db.select().from(reviews).where(eq(reviews.productId, productId)).orderBy(desc(reviews.createdAt));
+  } catch (error) {
+    console.error('[Database] Failed to get product reviews:', error);
+    return [];
+  }
+}
+
+export async function getProductAverageRating(productId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+  
+  try {
+    const result = await db.select({ avgRating: avg(reviews.rating) })
+      .from(reviews)
+      .where(and(eq(reviews.productId, productId), eq(reviews.approved, 'true')));
+    const avgValue = result[0]?.avgRating ? parseFloat(String(result[0].avgRating)) : 0;
+    return avgValue ? Math.round(avgValue * 10) / 10 : 0;
+  } catch (error) {
+    console.error('[Database] Failed to get average rating:', error);
+    return 0;
+  }
+}
+
+export async function updateReviewApproval(reviewId: number, approved: boolean) {
+  const db = await getDb();
+  if (!db) return false;
+  
+  try {
+    await db.update(reviews).set({ approved: approved ? 'true' : 'false' }).where(eq(reviews.id, reviewId));
+    return true;
+  } catch (error) {
+    console.error('[Database] Failed to update review approval:', error);
+    return false;
+  }
+}
+
+export async function deleteReview(reviewId: number) {
+  const db = await getDb();
+  if (!db) return false;
+  
+  try {
+    await db.delete(reviews).where(eq(reviews.id, reviewId));
+    return true;
+  } catch (error) {
+    console.error('[Database] Failed to delete review:', error);
+    return false;
+  }
+}
+
+export async function getAllPendingReviews() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  try {
+    return db.select().from(reviews).where(eq(reviews.approved, 'false')).orderBy(desc(reviews.createdAt));
+  } catch (error) {
+    console.error('[Database] Failed to get pending reviews:', error);
+    return [];
   }
 }

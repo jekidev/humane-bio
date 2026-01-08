@@ -42,6 +42,10 @@ export default function AdminPanel() {
     enabled: user?.role === 'admin',
   });
 
+  const { data: pendingReviews, refetch: refetchReviews } = trpc.admin.getPendingReviews.useQuery(undefined, {
+    enabled: user?.role === 'admin',
+  });
+
   // Update settings when data loads
   if (currentLLMSettings && !llmSettings.apiUrl) {
     setLlmSettings(currentLLMSettings);
@@ -84,7 +88,23 @@ export default function AdminPanel() {
 
   const updateContactSettingsMutation = trpc.admin.updateContactSettings.useMutation({
     onSuccess: () => toast.success('Contact settings updated'),
-    onError: (error) => toast.error(error.message),
+    onError: (error: any) => toast.error(error.message),
+  });
+
+  const approveReviewMutation = trpc.admin.approveReview.useMutation({
+    onSuccess: () => {
+      toast.success('Review approved');
+      refetchReviews();
+    },
+    onError: (error: any) => toast.error(error.message),
+  });
+
+  const deleteReviewMutation = trpc.admin.deleteReview.useMutation({
+    onSuccess: () => {
+      toast.success('Review deleted');
+      refetchReviews();
+    },
+    onError: (error: any) => toast.error(error.message),
   });
 
   if (authLoading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
@@ -102,10 +122,11 @@ export default function AdminPanel() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-white border border-gray-200">
+          <TabsList className="grid w-full grid-cols-5 bg-white border border-gray-200">
             <TabsTrigger value="products" className="data-[state=active]:bg-black data-[state=active]:text-white">Products</TabsTrigger>
             <TabsTrigger value="orders" className="data-[state=active]:bg-black data-[state=active]:text-white">Orders</TabsTrigger>
             <TabsTrigger value="chat" className="data-[state=active]:bg-black data-[state=active]:text-white">Chat</TabsTrigger>
+            <TabsTrigger value="reviews" className="data-[state=active]:bg-black data-[state=active]:text-white">Reviews</TabsTrigger>
             <TabsTrigger value="settings" className="data-[state=active]:bg-black data-[state=active]:text-white">Settings</TabsTrigger>
           </TabsList>
 
@@ -301,6 +322,48 @@ export default function AdminPanel() {
                     </div>
                   ))}
                 </div>
+              )}
+            </Card>
+          </TabsContent>
+
+          {/* Reviews Tab */}
+          <TabsContent value="reviews" className="space-y-6">
+            <Card className="p-6 border border-gray-200">
+              <h2 className="text-2xl font-bold text-black mb-6">Pending Reviews ({pendingReviews?.length || 0})</h2>
+              {pendingReviews && pendingReviews.length > 0 ? (
+                <div className="space-y-4">
+                  {pendingReviews.map((review: any) => (
+                    <div key={review.id} className="p-4 border border-gray-300 rounded-lg">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h3 className="font-semibold text-black">{review.title}</h3>
+                          <p className="text-sm text-gray-600">Product ID: {review.productId} | Rating: {review.rating}/5</p>
+                        </div>
+                      </div>
+                      <p className="text-gray-700 mb-4">{review.content}</p>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => approveReviewMutation.mutate({ reviewId: review.id, approved: true })}
+                          disabled={approveReviewMutation.isPending}
+                          className="bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          Approve
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => deleteReviewMutation.mutate({ reviewId: review.id })}
+                          disabled={deleteReviewMutation.isPending}
+                          className="bg-red-600 hover:bg-red-700 text-white"
+                        >
+                          Reject
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-600">No pending reviews</p>
               )}
             </Card>
           </TabsContent>

@@ -22,6 +22,13 @@
       "when": 1767882227467,
       "tag": "0002_lucky_star_brand",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1767885236841,
+      "tag": "0003_silent_proudstar",
+      "breakpoints": true
     }
   ]
 }

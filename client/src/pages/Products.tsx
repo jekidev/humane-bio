@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { ShoppingCart, ExternalLink } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { motion } from 'framer-motion';
@@ -101,6 +101,7 @@ const SAMPLE_PRODUCTS = [
 ];
 
 export default function Products() {
+  const [, navigate] = useLocation();
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'nootropic' | 'peptide'>('all');
   const [cart, setCart] = useState<Array<{ id: number; quantity: number }>>([]);
 
@@ -237,7 +238,7 @@ export default function Products() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6 }}
                 >
-                  <Card className="border border-gray-300 bg-white/90 backdrop-blur overflow-hidden hover:shadow-xl transition-all duration-300 group flex flex-col">
+                  <Card className="border border-gray-300 bg-white/90 backdrop-blur overflow-hidden hover:shadow-xl transition-all duration-300 group flex flex-col cursor-pointer" onClick={() => navigate(`/product/${product.id}`)}>
                     {/* Image */}
                     <div className="relative h-40 overflow-hidden bg-gray-100">
                       <img
@@ -278,7 +279,7 @@ export default function Products() {
                       {/* Actions */}
                       <Button
                         className="w-full bg-black hover:bg-gray-900 text-white font-semibold"
-                        onClick={() => handleAddToCart(product.id)}
+                        onClick={(e) => { e.stopPropagation(); handleAddToCart(product.id); }}
                       >
                         <ShoppingCart className="w-4 h-4 mr-2" />
                         Add to Cart

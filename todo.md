@@ -5,7 +5,7 @@
 - [x] Homepage with animated HUD elements and hero section
 - [x] Navigation menu (top nav with Home, Products, Blog, About, Member Login)
 - [x] Product catalog page (Nootropics section, Peptide section)
-- [ ] Product detail page with scientific papers/research links
+- [x] Product detail page with scientific papers/research links
 - [x] Blog listing page
 - [ ] Blog post detail page
 - [x] About page
@@ -124,3 +124,16 @@
 - [x] Integrate image upload into admin panel
 - [x] Add pricing editor to admin panel
 - [x] Test image upload and pricing updates (7 new tests passing)
+
+
+## Review & Rating System
+- [x] Database schema for reviews and ratings
+- [x] Backend API routes for submitting reviews
+- [x] Backend API routes for retrieving reviews
+- [x] Review UI component with star ratings
+- [x] Review list with filtering and sorting
+- [x] Admin panel review moderation
+- [x] Average rating calculation and display
+- [x] Review validation and spam prevention
+- [x] User verification for reviews (purchased customers only)
+- [x] Review tests (17+ tests)
