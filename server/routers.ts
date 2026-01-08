@@ -9,6 +9,7 @@ import { invokeLLM } from "./_core/llm";
 import { getAllProducts, updateProduct, createProduct, getAllOrders, updateOrderStatus, getAllChatHistory, getAdminSetting, setAdminSetting, getCartItems, addToCart, removeFromCart, clearCart, getProductById } from "./db";
 import { createCheckoutSession } from "./stripe";
 import { TRPCError } from "@trpc/server";
+import { uploadProductImage, validateImageFile } from "./product-upload";
 
 export const appRouter = router({
   system: systemRouter,
@@ -204,6 +205,63 @@ export const appRouter = router({
         if (ctx.user?.role !== 'admin') throw new TRPCError({ code: 'FORBIDDEN' });
         const result = await createProduct(input as any);
         if (!result) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+        return { success: true };
+      }),
+
+    uploadProductImage: protectedProcedure
+      .input(z.object({
+        productId: z.number(),
+        fileName: z.string(),
+        mimeType: z.string(),
+        fileData: z.string(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user?.role !== 'admin') throw new TRPCError({ code: 'FORBIDDEN' });
+
+        try {
+          const fileBuffer = Buffer.from(input.fileData, 'base64');
+          const isValid = await validateImageFile(fileBuffer, input.mimeType);
+          if (!isValid) {
+            throw new TRPCError({ code: 'BAD_REQUEST', message: 'Invalid image file' });
+          }
+
+          const result = await uploadProductImage(
+            input.productId,
+            fileBuffer,
+            input.fileName,
+            input.mimeType
+          );
+
+          if (!result) {
+            throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to upload image' });
+          }
+
+          const updateSuccess = await updateProduct(input.productId, { image: result.url });
+          if (!updateSuccess) {
+            throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to update product' });
+          }
+
+          return {
+            success: true,
+            url: result.url,
+            key: result.key,
+          };
+        } catch (error) {
+          console.error('[Upload] Error:', error);
+          if (error instanceof TRPCError) throw error;
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+        }
+      }),
+
+    updateProductPrice: protectedProcedure
+      .input(z.object({
+        productId: z.number(),
+        price: z.number().min(0),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user?.role !== 'admin') throw new TRPCError({ code: 'FORBIDDEN' });
+        const success = await updateProduct(input.productId, { price: input.price });
+        if (!success) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
         return { success: true };
       }),
 

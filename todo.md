@@ -116,3 +116,11 @@
 - [ ] Test Stripe integration with test cards
 - [x] Cart and checkout API routes (39 tests passing)
 - [x] Cart and checkout UI pages
+
+
+## Product Image Upload & Pricing
+- [x] S3 image upload endpoint
+- [x] Image upload UI component with preview
+- [x] Integrate image upload into admin panel
+- [x] Add pricing editor to admin panel
+- [x] Test image upload and pricing updates (7 new tests passing)

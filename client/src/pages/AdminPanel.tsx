@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from 'sonner';
 import { Plus, Edit2, Save } from 'lucide-react';
 import { useLocation } from 'wouter';
+import ImageUploadField from '@/components/ImageUploadField';
 
 export default function AdminPanel() {
   const { user, loading: authLoading } = useAuth();
@@ -203,11 +204,13 @@ export default function AdminPanel() {
                               onChange={(e) => setEditingProduct({ ...editingProduct, price: parseInt(e.target.value) })}
                               className="border-gray-300"
                             />
-                            <Input
-                              placeholder="Image URL"
-                              defaultValue={editingProduct?.image}
-                              onChange={(e) => setEditingProduct({ ...editingProduct, image: e.target.value })}
-                              className="border-gray-300"
+                            <ImageUploadField
+                              productId={editingProduct?.id}
+                              currentImage={editingProduct?.image}
+                              onUploadSuccess={(url) => {
+                                setEditingProduct({ ...editingProduct, image: url });
+                                toast.success('Image uploaded successfully');
+                              }}
                             />
                             <Button
                               onClick={() => updateProductMutation.mutate({ id: editingProduct.id, ...editingProduct })}
