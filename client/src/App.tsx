@@ -6,21 +6,23 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Products from "./pages/Products";
-import Dashboard from "./pages/Dashboard";
 import Blog from "./pages/Blog";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import Dashboard from "./pages/Dashboard";
 import AdminPanel from "./pages/AdminPanel";
+import ChatAssistant from "./components/ChatAssistant";
+import HUDElements from "./components/HUDElements";
 
 function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/products"} component={Products} />
-      <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/blog"} component={Blog} />
       <Route path={"/about"} component={About} />
       <Route path={"/contact"} component={Contact} />
+      <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/admin"} component={AdminPanel} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
@@ -32,10 +34,10 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider
-        defaultTheme="dark"
-      >
+      <ThemeProvider defaultTheme="light">
         <TooltipProvider>
+          <HUDElements />
+          <ChatAssistant />
           <Toaster />
           <Router />
         </TooltipProvider>
