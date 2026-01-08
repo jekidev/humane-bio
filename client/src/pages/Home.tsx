@@ -101,13 +101,13 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="flex items-center justify-center h-64 bg-gray-900 rounded-lg overflow-hidden hover:shadow-2xl transition-all">
-              <img src="/logo1.jpg" alt="Molecular Structure" className="w-full h-full object-cover hover:scale-105 transition-transform" />
+              <img src="/a21ae869-25ca-4173-8a6e-c598a08fd6d8.jpg" alt="Molecular Structure" className="w-full h-full object-cover hover:scale-105 transition-transform" />
             </div>
             <div className="flex items-center justify-center h-64 bg-gray-900 rounded-lg overflow-hidden hover:shadow-2xl transition-all">
-              <img src="/logo2.jpg" alt="HumaneBio Technology" className="w-full h-full object-cover hover:scale-105 transition-transform" />
+              <img src="/a22fe1e0-dc45-46de-9415-ac2c76a7a07c.jpg" alt="HumaneBio Technology" className="w-full h-full object-cover hover:scale-105 transition-transform" />
             </div>
             <div className="flex items-center justify-center h-64 bg-gray-900 rounded-lg overflow-hidden hover:shadow-2xl transition-all">
-              <img src="/logo3.jpg" alt="Circuit Technology" className="w-full h-full object-cover hover:scale-105 transition-transform" />
+              <img src="/beae2f62-3025-4006-a35e-23e12adfedb6.jpg" alt="Circuit Technology" className="w-full h-full object-cover hover:scale-105 transition-transform" />
             </div>
           </div>
         </div>
@@ -158,7 +158,7 @@ export default function Home() {
             <Card className="overflow-hidden border border-gray-200 hover:shadow-lg smooth-transition group">
               <div className="h-64 bg-gray-100 overflow-hidden relative">
                 <img
-                  src="/5be9deca-3ab9-494f-ba21-f7191e8cb063.png"
+                  src="/c0503e38-b757-4181-afb3-4b9539c1efb1.jpg"
                   alt="Nootropics"
                   className="w-full h-full object-cover group-hover:scale-105 smooth-transition"
                 />
@@ -181,7 +181,7 @@ export default function Home() {
             <Card className="overflow-hidden border border-gray-200 hover:shadow-lg smooth-transition group">
               <div className="h-64 bg-gray-100 overflow-hidden relative">
                 <img
-                  src="/3a28830d-92a3-4373-b7a2-a4d7b533b25b.png"
+                  src="/dcb3fce0-0994-4a74-9871-d5a58136161f.jpg"
                   alt="Peptides"
                   className="w-full h-full object-cover group-hover:scale-105 smooth-transition"
                 />
