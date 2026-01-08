@@ -105,11 +105,11 @@ export default function Checkout() {
   const totalPrice = cartItems.reduce((sum, item) => sum + (item.quantity * 100), 0) / 100;
 
   return (
-    <div className="min-h-screen bg-background pt-24 pb-12">
+    <div className="min-h-screen bg-background pt-20 md:pt-24 pb-12">
       <div className="max-w-4xl mx-auto px-4">
-        <h1 className="text-4xl font-bold mb-8 text-foreground">Checkout</h1>
+        <h1 className="text-2xl md:text-4xl font-bold mb-6 md:mb-8 text-foreground">Checkout</h1>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           {/* Checkout Form */}
           <div className="md:col-span-2">
             <Card className="p-6">

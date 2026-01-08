@@ -82,13 +82,13 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 md:space-y-8">
       {/* Rating Summary */}
-      <Card className="p-6 bg-slate-900/50 border-slate-700">
-        <h3 className="text-2xl font-bold mb-4 text-white">Customer Reviews</h3>
-        <div className="flex items-center gap-6 mb-6">
+      <Card className="p-4 md:p-6 bg-slate-900/50 border-slate-700">
+        <h3 className="text-xl md:text-2xl font-bold mb-4 text-white">Customer Reviews</h3>
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6 mb-6">
           <div className="flex flex-col items-center">
-            <div className="text-4xl font-bold text-white">{productRating?.averageRating?.toFixed(1) || '0'}</div>
+            <div className="text-3xl md:text-4xl font-bold text-white">{productRating?.averageRating?.toFixed(1) || '0'}</div>
             <div className="mt-2">
               <StarRating value={Math.round(productRating?.averageRating || 0)} />
             </div>
@@ -101,8 +101,8 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
 
       {/* Review Submission Form */}
       {isAuthenticated ? (
-        <Card className="p-6 bg-slate-900/50 border-slate-700">
-          <h4 className="text-xl font-bold mb-4 text-white">Share Your Review</h4>
+        <Card className="p-4 md:p-6 bg-slate-900/50 border-slate-700">
+          <h4 className="text-lg md:text-xl font-bold mb-4 text-white">Share Your Review</h4>
           <form onSubmit={handleSubmitReview} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -161,22 +161,22 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
           </form>
         </Card>
       ) : (
-        <Card className="p-6 bg-slate-900/50 border-slate-700">
-          <p className="text-gray-400">
+        <Card className="p-4 md:p-6 bg-slate-900/50 border-slate-700">
+          <p className="text-gray-400 text-sm md:text-base">
             Please <a href="/login" className="text-cyan-400 hover:text-cyan-300">log in</a> to submit a review.
           </p>
         </Card>
       )}
 
       {/* Reviews List */}
-      <div className="space-y-4">
-        <h4 className="text-xl font-bold text-white">Recent Reviews</h4>
+      <div className="space-y-3 md:space-y-4">
+        <h4 className="text-lg md:text-xl font-bold text-white">Recent Reviews</h4>
         {reviews && reviews.length > 0 ? (
           reviews.map((review: any) => (
-            <Card key={review.id} className="p-6 bg-slate-900/50 border-slate-700">
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <h5 className="font-bold text-white">{review.title}</h5>
+            <Card key={review.id} className="p-4 md:p-6 bg-slate-900/50 border-slate-700">
+              <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-3">
+                <div className="flex-1">
+                  <h5 className="font-bold text-white text-sm md:text-base">{review.title}</h5>
                   <div className="flex gap-2 mt-1">
                     <StarRating value={review.rating} />
                     {review.verified === 'true' && (
@@ -194,8 +194,8 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
             </Card>
           ))
         ) : (
-          <Card className="p-6 bg-slate-900/50 border-slate-700">
-            <p className="text-gray-400">No reviews yet. Be the first to review this product!</p>
+          <Card className="p-4 md:p-6 bg-slate-900/50 border-slate-700">
+            <p className="text-gray-400 text-sm md:text-base">No reviews yet. Be the first to review this product!</p>
           </Card>
         )}
       </div>

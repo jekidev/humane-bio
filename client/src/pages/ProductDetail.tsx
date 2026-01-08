@@ -96,8 +96,8 @@ export default function ProductDetail() {
         </section>
 
         {/* Main Content */}
-        <div className="container max-w-6xl py-12">
-          <div className="grid md:grid-cols-2 gap-12 mb-12">
+        <div className="container max-w-6xl py-8 px-4 md:py-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 mb-12">
             {/* Product Image */}
             <div>
               <Card className="border border-gray-300 bg-white/90 overflow-hidden">
@@ -117,14 +117,14 @@ export default function ProductDetail() {
                 <Badge className="bg-black text-white capitalize mb-4">
                   {product.category}
                 </Badge>
-                <h1 className="text-4xl font-bold text-black mb-4">{product.name}</h1>
-                <p className="text-xl text-gray-700 mb-6">{product.description}</p>
+                <h1 className="text-2xl md:text-4xl font-bold text-black mb-4">{product.name}</h1>
+                <p className="text-base md:text-xl text-gray-700 mb-6">{product.description}</p>
               </div>
 
               {/* Price */}
               <div className="mb-8 p-6 bg-white/80 rounded-lg border border-gray-300">
                 <p className="text-gray-600 text-sm mb-2">Price</p>
-                <p className="text-4xl font-bold text-black mb-6">
+                <p className="text-3xl md:text-4xl font-bold text-black mb-6">
                   ${(product.price / 100).toFixed(2)}
                 </p>
 
@@ -169,7 +169,7 @@ export default function ProductDetail() {
           </div>
 
           {/* Reviews Section */}
-          <div className="mt-16">
+          <div className="mt-12 md:mt-16">
             <ProductReviews productId={product.id} />
           </div>
         </div>
