@@ -103,7 +103,7 @@ export default function ProductDetail() {
               <Card className="border border-gray-300 bg-white/90 overflow-hidden">
                 <div className="aspect-square bg-gray-100 flex items-center justify-center">
                   <img
-                    src={product.image || '/product-placeholder.jpg'}
+                    src={product.image || '/drugs.jpg'}
                     alt={product.name}
                     className="w-full h-full object-cover"
                   />
