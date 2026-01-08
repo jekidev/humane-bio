@@ -1,129 +1,144 @@
-import { useAuth } from '@/_core/hooks/useAuth';
+import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
-import { getLoginUrl } from '@/const';
-import { Menu, X, LogOut } from 'lucide-react';
+import { useAuth } from '@/_core/hooks/useAuth';
+import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from 'wouter';
+import { getLoginUrl } from '@/const';
 
 export default function Navigation() {
-  const [isOpen, setIsOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
+  const [, setLocation] = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const navItems = [
+    { label: 'Home', href: '/' },
+    { label: 'Products', href: '/products' },
+    { label: 'Blog', href: '/blog' },
+    { label: 'About', href: '/about' },
+    { label: 'Contact', href: '/contact' },
+  ];
 
   return (
-    <nav className="sticky top-0 z-30 border-b border-cyan-500/20 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-900/80 backdrop-blur-md">
-      <div className="container flex items-center justify-between h-16">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="p-2 rounded-lg bg-gradient-to-br from-cyan-600 to-cyan-500 group-hover:from-cyan-500 group-hover:to-cyan-400 transition-all">
-            <div className="w-6 h-6 text-white font-bold flex items-center justify-center">HB</div>
-          </div>
-          <span className="text-xl font-bold text-cyan-300 group-hover:text-cyan-200 transition-colors">HumaneBio</span>
-        </Link>
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
+      <div className="container max-w-6xl">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <Link href="/">
+            <div className="flex items-center gap-2 cursor-pointer">
+              <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">HB</span>
+              </div>
+              <span className="text-lg font-bold text-black hidden sm:inline">HumaneBio</span>
+            </div>
+          </Link>
 
-        {/* Desktop Menu */}
-        <div className="hidden md:flex items-center gap-8">
-          <Link href="/" className="text-gray-300 hover:text-cyan-300 transition-colors font-medium">
-            Home
-          </Link>
-          <Link href="/products" className="text-gray-300 hover:text-cyan-300 transition-colors font-medium">
-            Products
-          </Link>
-          <Link href="/blog" className="text-gray-300 hover:text-cyan-300 transition-colors font-medium">
-            Blog
-          </Link>
-          <Link href="/about" className="text-gray-300 hover:text-cyan-300 transition-colors font-medium">
-            About
-          </Link>
-          <Link href="/contact" className="text-gray-300 hover:text-cyan-300 transition-colors font-medium">
-            Contact
-          </Link>
-        </div>
-
-        {/* Auth Buttons */}
-        <div className="hidden md:flex items-center gap-4">
-          {isAuthenticated && user ? (
-            <>
-              <Link href="/dashboard" className="text-gray-300 hover:text-cyan-300 transition-colors font-medium">
-                Dashboard
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-8">
+            {navItems.map((item) => (
+              <Link key={item.href} href={item.href}>
+                <span className="text-gray-700 hover:text-black smooth-transition cursor-pointer font-medium">
+                  {item.label}
+                </span>
               </Link>
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10"
-                onClick={() => logout()}
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </Button>
-            </>
-          ) : (
-            <Button
-              size="sm"
-              className="bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-slate-900 font-semibold"
-              onClick={() => window.location.href = getLoginUrl()}
-            >
-              Login
-            </Button>
-          )}
+            ))}
+          </div>
+
+          {/* Auth Buttons */}
+          <div className="hidden md:flex items-center gap-4">
+            {isAuthenticated ? (
+              <>
+                <Link href="/dashboard">
+                  <Button variant="outline" className="border-gray-300 text-black hover:bg-gray-100">
+                    {user?.name || 'Dashboard'}
+                  </Button>
+                </Link>
+                {user?.role === 'admin' && (
+                  <Link href="/admin">
+                    <Button className="bg-black text-white hover:bg-gray-900">
+                      Admin
+                    </Button>
+                  </Link>
+                )}
+                <Button
+                  variant="outline"
+                  className="border-gray-300 text-black hover:bg-gray-100"
+                  onClick={() => {
+                    logout();
+                    setLocation('/');
+                  }}
+                >
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <a href={getLoginUrl()}>
+                <Button className="bg-black text-white hover:bg-gray-900">
+                  Sign In
+                </Button>
+              </a>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden p-2 text-gray-700 hover:text-black"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
 
-        {/* Mobile Menu Button */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="md:hidden p-2 hover:bg-slate-800 rounded transition-colors"
-        >
-          {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
-      {isOpen && (
-        <div className="md:hidden border-t border-cyan-500/20 bg-slate-900/95 backdrop-blur">
-          <div className="container py-4 space-y-3">
-            <Link href="/" className="block px-4 py-2 text-gray-300 hover:text-cyan-300 hover:bg-slate-800 rounded transition-colors">
-              Home
-            </Link>
-            <Link href="/products" className="block px-4 py-2 text-gray-300 hover:text-cyan-300 hover:bg-slate-800 rounded transition-colors">
-              Products
-            </Link>
-            <Link href="/blog" className="block px-4 py-2 text-gray-300 hover:text-cyan-300 hover:bg-slate-800 rounded transition-colors">
-              Blog
-            </Link>
-            <Link href="/about" className="block px-4 py-2 text-gray-300 hover:text-cyan-300 hover:bg-slate-800 rounded transition-colors">
-              About
-            </Link>
-            <Link href="/contact" className="block px-4 py-2 text-gray-300 hover:text-cyan-300 hover:bg-slate-800 rounded transition-colors">
-              Contact
-            </Link>
-            <div className="pt-3 border-t border-slate-700 space-y-2">
-              {isAuthenticated && user ? (
+        {/* Mobile Navigation */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-gray-200 py-4 space-y-2">
+            {navItems.map((item) => (
+              <Link key={item.href} href={item.href}>
+                <div
+                  className="px-4 py-2 text-gray-700 hover:text-black hover:bg-gray-50 cursor-pointer"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item.label}
+                </div>
+              </Link>
+            ))}
+            <div className="px-4 py-2 border-t border-gray-200 mt-2 pt-2">
+              {isAuthenticated ? (
                 <>
-                  <Link href="/dashboard" className="block px-4 py-2 text-gray-300 hover:text-cyan-300 hover:bg-slate-800 rounded transition-colors">
-                    Dashboard
+                  <Link href="/dashboard">
+                    <Button variant="outline" className="w-full border-gray-300 text-black hover:bg-gray-100 mb-2">
+                      Dashboard
+                    </Button>
                   </Link>
+                  {user?.role === 'admin' && (
+                    <Link href="/admin">
+                      <Button className="w-full bg-black text-white hover:bg-gray-900 mb-2">
+                        Admin
+                      </Button>
+                    </Link>
+                  )}
                   <Button
                     variant="outline"
-                    size="sm"
-                    className="w-full border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10"
-                    onClick={() => logout()}
+                    className="w-full border-gray-300 text-black hover:bg-gray-100"
+                    onClick={() => {
+                      logout();
+                      setLocation('/');
+                      setMobileMenuOpen(false);
+                    }}
                   >
-                    <LogOut className="w-4 h-4 mr-2" />
                     Logout
                   </Button>
                 </>
               ) : (
-                <Button
-                  size="sm"
-                  className="w-full bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-slate-900 font-semibold"
-                  onClick={() => window.location.href = getLoginUrl()}
-                >
-                  Login
-                </Button>
+                <a href={getLoginUrl()} className="block">
+                  <Button className="w-full bg-black text-white hover:bg-gray-900">
+                    Sign In
+                  </Button>
+                </a>
               )}
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </nav>
   );
 }

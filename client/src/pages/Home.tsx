@@ -1,247 +1,196 @@
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Link } from 'wouter';
-import { ArrowRight, Zap, Brain, Beaker } from 'lucide-react';
 import Navigation from '@/components/Navigation';
-import AgeVerificationModal from '@/components/AgeVerificationModal';
-import ChatAssistant from '@/components/ChatAssistant';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Link } from 'wouter';
+import { ArrowRight, Beaker, Microscope, Zap, Award, Users, BookOpen } from 'lucide-react';
 
 export default function Home() {
+  const features = [
+    {
+      icon: Beaker,
+      title: 'Research Grade',
+      description: 'Laboratory-tested compounds with verified purity and potency',
+    },
+    {
+      icon: Microscope,
+      title: 'Scientific Validation',
+      description: 'Every product backed by peer-reviewed research and clinical studies',
+    },
+    {
+      icon: Award,
+      title: 'Premium Quality',
+      description: 'Third-party tested and certified for safety and efficacy',
+    },
+    {
+      icon: Zap,
+      title: 'Performance Optimized',
+      description: 'Carefully selected compounds for cognitive and physical enhancement',
+    },
+    {
+      icon: Users,
+      title: 'Expert Support',
+      description: 'AI-powered guidance to build your perfect stack',
+    },
+    {
+      icon: BookOpen,
+      title: 'Educational Resources',
+      description: 'Comprehensive blog with research insights and guides',
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-800 molecular-bg">
-      <AgeVerificationModal />
+    <div className="min-h-screen bg-white">
       <Navigation />
-      <ChatAssistant />
 
       {/* Hero Section */}
-      <section className="relative py-20 overflow-hidden">
-        {/* Animated background video overlay */}
-        <div className="absolute inset-0 opacity-20">
-          <video
-            autoPlay
-            muted
-            loop
-            className="w-full h-full object-cover"
-            src="/grok-video-96e594c2-ceef-430b-aa05-24775bae685d.mp4"
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/mmo_character_portrait.png"
+            alt="Hero Background"
+            className="w-full h-full object-cover opacity-10"
           />
+          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/95 to-white/80"></div>
         </div>
 
-        <div className="container relative z-10 max-w-6xl">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            {/* Left Content */}
-            <div className="space-y-8">
-              <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-cyan-500/30 bg-cyan-500/10">
-                  <Zap className="w-4 h-4 text-cyan-400" />
-                  <span className="text-sm font-semibold text-cyan-300">Scientifically Validated</span>
-                </div>
-                <h1 className="text-5xl md:text-6xl font-bold leading-tight">
-                  <span className="text-white">Optimize Your</span>
-                  <br />
-                  <span className="bg-gradient-to-r from-cyan-400 to-orange-400 bg-clip-text text-transparent">
-                    Cognitive Performance
-                  </span>
-                </h1>
-                <p className="text-xl text-gray-300 leading-relaxed">
-                  Discover premium nootropics and peptides backed by peer-reviewed research. Build your perfect stack with our AI-powered assistant.
-                </p>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/products">
-                  <Button className="w-full sm:w-auto bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-slate-900 font-semibold text-lg px-8 py-6">
-                    Shop Now
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                </Link>
-                <Button
-                  variant="outline"
-                  className="w-full sm:w-auto border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10 font-semibold text-lg px-8 py-6"
-                >
-                  Learn More
-                </Button>
-              </div>
-            </div>
-
-            {/* Right Visual */}
-            <div className="relative h-96 md:h-full">
-              <div className="absolute inset-0 rounded-2xl overflow-hidden border border-cyan-500/30 hud-glow">
-                <img
-                  src="/7a901027-cbf6-40cd-a95e-f3194007e3e5.png"
-                  alt="HUD Visualization"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              {/* Floating elements */}
-              <div className="absolute -top-4 -right-4 w-32 h-32 bg-cyan-500/20 rounded-full blur-3xl animate-float"></div>
-              <div className="absolute -bottom-4 -left-4 w-40 h-40 bg-orange-500/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '1s' }}></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-20 border-t border-cyan-500/10">
-        <div className="container max-w-6xl">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">Why Choose HumaneBio</h2>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-              Premium research chemicals with scientific validation and expert support
+        {/* Content */}
+        <div className="relative z-10 container max-w-6xl text-center">
+          <div className="animate-fade-in">
+            <h1 className="text-6xl md:text-7xl font-bold mb-6 text-black">
+              HumaneBio
+            </h1>
+            <p className="text-2xl md:text-3xl text-gray-700 mb-4 font-light">
+              Premium Research Chemicals & Peptides
             </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              {
-                icon: Brain,
-                title: 'AI-Powered Recommendations',
-                description: 'Our intelligent assistant helps you find the perfect stack based on your specific goals and needs.',
-              },
-              {
-                icon: Beaker,
-                title: 'Scientifically Validated',
-                description: 'Every product includes links to peer-reviewed research papers and clinical studies.',
-              },
-              {
-                icon: Zap,
-                title: 'Premium Quality',
-                description: 'Lab-tested purity and potency with full transparency and third-party verification.',
-              },
-            ].map((feature, idx) => (
-              <Card
-                key={idx}
-                className="p-6 border-cyan-500/20 bg-gradient-to-br from-slate-800 to-slate-900 hover:border-cyan-500/40 transition-all duration-300 group"
-              >
-                <div className="p-3 rounded-lg bg-cyan-500/10 w-fit mb-4 group-hover:bg-cyan-500/20 transition-colors">
-                  <feature.icon className="w-6 h-6 text-cyan-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
-                <p className="text-gray-400">{feature.description}</p>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Product Categories Preview */}
-      <section className="py-20 border-t border-cyan-500/10">
-        <div className="container max-w-6xl">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">Our Collections</h2>
-            <p className="text-gray-400 text-lg">Explore our carefully curated selection</p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            {[
-              {
-                title: 'Nootropics',
-                description: 'Cognitive enhancers designed to boost focus, memory, and mental clarity',
-                color: 'from-cyan-600/20 to-cyan-500/10',
-                border: 'border-cyan-500/30',
-                items: ['Bromantan', 'Agmantine Sulfate', 'Phenyl Piracetam', '9-me-bc', 'Modafinil'],
-              },
-              {
-                title: 'Peptides',
-                description: 'Advanced bioactive peptides for cellular optimization and recovery',
-                color: 'from-orange-600/20 to-orange-500/10',
-                border: 'border-orange-500/30',
-                items: ['BPC 156', 'TB500', 'Glutathion', 'Semax', 'Selank'],
-              },
-            ].map((category, idx) => (
-              <Card
-                key={idx}
-                className={`p-8 border ${category.border} bg-gradient-to-br ${category.color} hover:shadow-lg transition-all duration-300`}
-              >
-                <h3 className="text-2xl font-bold text-white mb-2">{category.title}</h3>
-                <p className="text-gray-400 mb-6">{category.description}</p>
-                <div className="space-y-2 mb-6">
-                  {category.items.map((item, i) => (
-                    <div key={i} className="flex items-center gap-2 text-gray-300">
-                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400"></div>
-                      <span>{item}</span>
-                    </div>
-                  ))}
-                </div>
-                <Link href="/products">
-                  <Button
-                    variant="outline"
-                    className="w-full border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10"
-                  >
-                    Explore {category.title}
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </Link>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 border-t border-cyan-500/10">
-        <div className="container max-w-4xl">
-          <div className="relative rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-slate-800 to-slate-900 p-12 overflow-hidden">
-            {/* Background animation */}
-            <div className="absolute inset-0 opacity-20">
-              <video
-                autoPlay
-                muted
-                loop
-                className="w-full h-full object-cover"
-                src="/grok-video-c0503e38-b757-4181-afb3-4b9539c1efb1.mp4"
-              />
-            </div>
-
-            <div className="relative z-10 text-center">
-              <h2 className="text-3xl font-bold text-white mb-4">Ready to Optimize?</h2>
-              <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
-                Join thousands of users who have discovered their perfect cognitive stack. Our AI assistant is ready to help you get started.
-              </p>
+            <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
+              Scientifically-validated nootropics and peptides for cognitive enhancement and human optimization. Every product backed by peer-reviewed research.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/products">
-                <Button className="bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-slate-900 font-semibold px-8 py-6 text-lg">
-                  Get Started
-                  <ArrowRight className="w-5 h-5 ml-2" />
+                <Button size="lg" className="bg-black text-white hover:bg-gray-900 smooth-transition">
+                  Explore Products <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link href="/about">
+                <Button size="lg" variant="outline" className="border-black text-black hover:bg-gray-100 smooth-transition">
+                  Learn More
                 </Button>
               </Link>
             </div>
           </div>
         </div>
+
+        {/* Scroll Indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce z-10">
+          <div className="w-6 h-10 border-2 border-black rounded-full flex items-start justify-center p-2">
+            <div className="w-1 h-3 bg-black rounded-full"></div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-24 px-4 bg-gray-50">
+        <div className="container max-w-6xl">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-black mb-4">Why Choose HumaneBio</h2>
+            <p className="text-xl text-gray-600">Premium quality, scientific integrity, and expert support</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {features.map((feature, idx) => (
+              <Card
+                key={idx}
+                className="p-8 border border-gray-200 bg-white hover:shadow-lg smooth-transition"
+              >
+                <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mb-4">
+                  <feature.icon className="h-6 w-6 text-black" />
+                </div>
+                <h3 className="text-xl font-semibold text-black mb-3">{feature.title}</h3>
+                <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Product Categories */}
+      <section className="py-24 px-4 bg-white">
+        <div className="container max-w-6xl">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-black mb-4">Our Collections</h2>
+            <p className="text-xl text-gray-600">Carefully curated compounds for optimal results</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-12">
+            {/* Nootropics */}
+            <Card className="overflow-hidden border border-gray-200 hover:shadow-lg smooth-transition">
+              <div className="h-64 bg-gray-100 overflow-hidden relative">
+                <img
+                  src="/5be9deca-3ab9-494f-ba21-f7191e8cb063.png"
+                  alt="Nootropics"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="p-8">
+                <h3 className="text-2xl font-bold text-black mb-3">Nootropics</h3>
+                <p className="text-gray-600 mb-6 leading-relaxed">
+                  Cognitive enhancers including Bromantan, Modafinil, Phenyl Piracetam, and more. Designed to improve focus, memory, and mental clarity.
+                </p>
+                <Link href="/products?category=nootropic">
+                  <Button variant="outline" className="border-black text-black hover:bg-gray-100">
+                    View Nootropics <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            </Card>
+
+            {/* Peptides */}
+            <Card className="overflow-hidden border border-gray-200 hover:shadow-lg smooth-transition">
+              <div className="h-64 bg-gray-100 overflow-hidden relative">
+                <img
+                  src="/3a28830d-92a3-4373-b7a2-a4d7b533b25b.png"
+                  alt="Peptides"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="p-8">
+                <h3 className="text-2xl font-bold text-black mb-3">Peptides</h3>
+                <p className="text-gray-600 mb-6 leading-relaxed">
+                  Bioactive peptides including BPC 156, TB500, Semax, and Selank. Optimized for recovery, regeneration, and cognitive enhancement.
+                </p>
+                <Link href="/products?category=peptide">
+                  <Button variant="outline" className="border-black text-black hover:bg-gray-100">
+                    View Peptides <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-24 px-4 bg-black text-white">
+        <div className="container max-w-6xl text-center">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">Ready to Optimize?</h2>
+          <p className="text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
+            Use our AI-powered chat assistant to find the perfect stack tailored to your goals.
+          </p>
+          <Link href="/products">
+            <Button size="lg" className="bg-white text-black hover:bg-gray-100 smooth-transition">
+              Start Exploring <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </Link>
+        </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-cyan-500/10 py-12 bg-slate-900/50">
+      <footer className="border-t border-gray-200 py-12 bg-gray-50">
         <div className="container max-w-6xl">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <h4 className="font-semibold text-white mb-4">HumaneBio</h4>
-              <p className="text-gray-400 text-sm">Premium nootropics and peptides backed by science.</p>
-            </div>
-            <div>
-              <h4 className="font-semibold text-white mb-4">Products</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li><Link href="/products?category=nootropic" className="hover:text-cyan-300 transition-colors">Nootropics</Link></li>
-                <li><Link href="/products?category=peptide" className="hover:text-cyan-300 transition-colors">Peptides</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-white mb-4">Company</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li><Link href="/about" className="hover:text-cyan-300 transition-colors">About</Link></li>
-                <li><Link href="/blog" className="hover:text-cyan-300 transition-colors">Blog</Link></li>
-                <li><Link href="/contact" className="hover:text-cyan-300 transition-colors">Contact</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold text-white mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-cyan-300 transition-colors">Privacy</a></li>
-                <li><a href="#" className="hover:text-cyan-300 transition-colors">Terms</a></li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-slate-700 pt-8 text-center text-gray-500 text-sm">
-            <p>&copy; 2026 HumaneBio. All rights reserved. For research purposes only.</p>
+          <div className="text-center text-gray-600 text-sm">
+            <p>&copy; 2026 HumaneBio. All products are for research purposes only.</p>
+            <p className="mt-2">These statements have not been evaluated by regulatory authorities. These products are not intended to diagnose, treat, cure, or prevent any disease.</p>
           </div>
         </div>
       </footer>
