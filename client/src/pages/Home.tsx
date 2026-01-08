@@ -92,6 +92,27 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Logo Showcase Section */}
+      <section className="py-20 px-4 bg-black relative overflow-hidden">
+        <div className="container max-w-6xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">Advanced Research Technology</h2>
+            <p className="text-gray-300">Cutting-edge molecular science meets human optimization</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="flex items-center justify-center h-64 bg-gray-900 rounded-lg overflow-hidden hover:shadow-2xl transition-all">
+              <img src="/logo1.jpg" alt="Molecular Structure" className="w-full h-full object-cover hover:scale-105 transition-transform" />
+            </div>
+            <div className="flex items-center justify-center h-64 bg-gray-900 rounded-lg overflow-hidden hover:shadow-2xl transition-all">
+              <img src="/logo2.jpg" alt="HumaneBio Technology" className="w-full h-full object-cover hover:scale-105 transition-transform" />
+            </div>
+            <div className="flex items-center justify-center h-64 bg-gray-900 rounded-lg overflow-hidden hover:shadow-2xl transition-all">
+              <img src="/logo3.jpg" alt="Circuit Technology" className="w-full h-full object-cover hover:scale-105 transition-transform" />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="py-24 px-4 bg-gray-50 relative">
         <div className="container max-w-6xl">

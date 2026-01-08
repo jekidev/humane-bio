@@ -15,7 +15,7 @@ const SAMPLE_PRODUCTS = [
     price: 4999,
     description: 'Stimulant nootropic with mood-enhancing properties',
     scientificLinks: ['https://pubmed.ncbi.nlm.nih.gov/'],
-    image: '/7a901027-cbf6-40cd-a95e-f3194007e3e5.png',
+    image: '/product-placeholder.jpg',
   },
   {
     id: 2,
@@ -24,7 +24,7 @@ const SAMPLE_PRODUCTS = [
     price: 3999,
     description: 'Cognitive enhancer with neuroprotective properties',
     scientificLinks: ['https://pubmed.ncbi.nlm.nih.gov/'],
-    image: '/7a901027-cbf6-40cd-a95e-f3194007e3e5.png',
+    image: '/product-placeholder.jpg',
   },
   {
     id: 3,
@@ -33,7 +33,7 @@ const SAMPLE_PRODUCTS = [
     price: 5999,
     description: 'Enhanced piracetam derivative for cognitive performance',
     scientificLinks: ['https://pubmed.ncbi.nlm.nih.gov/'],
-    image: '/7a901027-cbf6-40cd-a95e-f3194007e3e5.png',
+    image: '/product-placeholder.jpg',
   },
   {
     id: 4,
@@ -42,7 +42,7 @@ const SAMPLE_PRODUCTS = [
     price: 6999,
     description: 'Potent nootropic with neuroprotective effects',
     scientificLinks: ['https://pubmed.ncbi.nlm.nih.gov/'],
-    image: '/7a901027-cbf6-40cd-a95e-f3194007e3e5.png',
+    image: '/product-placeholder.jpg',
   },
   {
     id: 5,
@@ -51,7 +51,7 @@ const SAMPLE_PRODUCTS = [
     price: 4499,
     description: 'Wakefulness-promoting agent for sustained focus',
     scientificLinks: ['https://pubmed.ncbi.nlm.nih.gov/'],
-    image: '/7a901027-cbf6-40cd-a95e-f3194007e3e5.png',
+    image: '/product-placeholder.jpg',
   },
   {
     id: 6,
@@ -60,7 +60,7 @@ const SAMPLE_PRODUCTS = [
     price: 7999,
     description: 'Bioactive peptide for cellular recovery and repair',
     scientificLinks: ['https://pubmed.ncbi.nlm.nih.gov/'],
-    image: '/7a901027-cbf6-40cd-a95e-f3194007e3e5.png',
+    image: '/product-placeholder.jpg',
   },
   {
     id: 7,
@@ -69,7 +69,7 @@ const SAMPLE_PRODUCTS = [
     price: 8999,
     description: 'Thymosin beta-4 for tissue repair and regeneration',
     scientificLinks: ['https://pubmed.ncbi.nlm.nih.gov/'],
-    image: '/7a901027-cbf6-40cd-a95e-f3194007e3e5.png',
+    image: '/product-placeholder.jpg',
   },
   {
     id: 8,
@@ -78,7 +78,7 @@ const SAMPLE_PRODUCTS = [
     price: 5999,
     description: 'Master antioxidant for cellular protection',
     scientificLinks: ['https://pubmed.ncbi.nlm.nih.gov/'],
-    image: '/7a901027-cbf6-40cd-a95e-f3194007e3e5.png',
+    image: '/product-placeholder.jpg',
   },
   {
     id: 9,
@@ -87,7 +87,7 @@ const SAMPLE_PRODUCTS = [
     price: 6999,
     description: 'Nootropic peptide for cognitive enhancement',
     scientificLinks: ['https://pubmed.ncbi.nlm.nih.gov/'],
-    image: '/7a901027-cbf6-40cd-a95e-f3194007e3e5.png',
+    image: '/product-placeholder.jpg',
   },
   {
     id: 10,
@@ -96,7 +96,7 @@ const SAMPLE_PRODUCTS = [
     price: 6999,
     description: 'Anxiolytic peptide with mood-balancing effects',
     scientificLinks: ['https://pubmed.ncbi.nlm.nih.gov/'],
-    image: '/7a901027-cbf6-40cd-a95e-f3194007e3e5.png',
+    image: '/product-placeholder.jpg',
   },
 ];
 
